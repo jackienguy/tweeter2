@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(
-    name='tweeter2_project',
-    packages=['tweeter2_project'],
+    name='myapp',
+    packages=['myapp'],
     include_package_data=True,
     install_requires=[
         'flask',
