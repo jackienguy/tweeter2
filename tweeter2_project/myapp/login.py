@@ -5,7 +5,7 @@ import json
 import re
 from myapp import app
 
-app = Flask(__name__)
+
 
 # POST to log in user with username and password combo
 def dbConnect():

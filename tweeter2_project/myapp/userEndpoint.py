@@ -2,10 +2,7 @@ import mariadb
 from myapp import dbcreds
 from flask import Flask, request, Response
 import json
-import re
 from myapp import app
-
-app = Flask(__name__)
 
 def dbConnect():
     conn = None
@@ -50,7 +47,7 @@ def find_user():
                                 mimetype="application/json",
                                 status=200)
             else:
-                print('User Id not found')
+                return('User Id not found')
 
         except mariadb.DataError:
             print("something went wrong with your data")
