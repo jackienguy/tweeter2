@@ -2,7 +2,6 @@ import mariadb
 from myapp import dbcreds
 from flask import Flask, request, Response
 import json
-import re
 from myapp import app
 
 # POST to log in user with username and password combo
@@ -65,6 +64,8 @@ def login(username, password):
                 conn.close()
             else:
                 print("Failed to read data")
+    else:
+        return ("Login failed")
 
 def delete_login_session():
     if (request.method == 'DELETE'):
@@ -76,7 +77,12 @@ def delete_login_session():
             (conn, cursor) = dbConnect()
             cursor.execute("DELETE login_token FROM user_session")
             conn.commit()
-            cursor.close()
+            resp = {
+               " loginToken" : login_token
+            }
+            return Response(json.dumps(resp),
+                                mimetype="application/json",
+                                status=200)
             
         except mariadb.DataError:
             print("something went wrong with your data")
@@ -97,3 +103,5 @@ def delete_login_session():
                 conn.close()
             else:
                 print("Failed to read data")
+    else:
+        return("Session end unsuccessful")
