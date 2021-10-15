@@ -1,6 +1,6 @@
 import mariadb
 from myapp import dbcreds
-from flask import Flask, request, Response
+from flask import request, Response
 import json
 from myapp import app
 
@@ -29,18 +29,18 @@ def dbConnect():
     return (conn, cursor)
 
 @app.route('/api/login', methods=['POST','DELETE'])
-def login(username, password):
+def login():
     if (request.method == 'POST'):
         conn = None
         cursor = None
         username = request.json.get('username')
         password = request.json.get('password')
+        login_token = 123
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT * FROM user WHERE username=?",[username,])
             result = cursor.fetchall()
-        
             return Response(json.dumps(result, default=str),
                                 mimetype="application/json",
                                 status=200)

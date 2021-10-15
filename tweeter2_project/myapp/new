@@ -9,12 +9,9 @@
 
 # have this call every time someone logs in and store in the db
 
-# Using class to have the abolity to interact with DB
-# class User:
-#     def __init__(self, id, username, password, bio, email, birthdate):
-#         self.id = id
-#         self.username = username
-#         self.password = password
-#         self.bio = bio
-#         self.email = email
-#         self.birthdate = birthdate
+  # # INPUT CODE for valid valid entry
+            # ePattern = "[A-Za-Z0-9._]+@[A-Za-z]+\.(com|ca)"
+            # if (re.fullmatch(ePattern, user_email)):
+            #     print('valid email')
+            # else:
+            #     return('invalid email')

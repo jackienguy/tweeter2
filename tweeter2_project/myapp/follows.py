@@ -36,4 +36,4 @@
 
 #         try:
 #             (conn, cursor) = dbConnect()
-#             cursor.execute("SELECT")
+#             cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id")
