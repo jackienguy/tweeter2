@@ -27,24 +27,21 @@ def dbConnect():
     
     return (conn, cursor)
 
-@app.route('/api/follows', methods=['GET'])
-def getUserFollows():
+@app.route('/api/followers', methods=['GET'])
+def getUserFollowers():
     if (request.method == 'GET'):
-        conn = None
         cursor = None
+        conn = None
         id = request.args.get('id')
 
         try:
             (conn, cursor) = dbConnect()
             if id:
-                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id =?", [id,])
+                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.follower_id =?", [id,])
                 result = cursor.fetchall()
-                return Response(json.dumps(result, default=str),
-                            mimetype="application/json",
-                            status=200)
-            else:
-                return("Something went wrong, can't get follows")
-
+                return Response(result, Default=str,
+                                mimetype="application/json",
+                                status=200)
         except ConnectionError:
             print("Error occured trying to connect to database")
         except mariadb.DataError:
@@ -66,4 +63,4 @@ def getUserFollows():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Follows retrieved")
+        return("Followers retrieved")

@@ -3,7 +3,6 @@ from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
-from uuid import uuid4
 
 def dbConnect():
     conn = None
@@ -28,32 +27,33 @@ def dbConnect():
     
     return (conn, cursor)
 
-@app.route('/api/login', methods=['POST','DELETE'])
-def user_session():
+@app.route('/api/tweets', methods=['GET', 'POST', 'PATCH', 'DELETE'])
+def tweets():
     if (request.method == 'POST'):
-        conn = None
         cursor = None
-        email = request.json.get('email')
-        password = request.json.get('password')
+        conn = None
+        login_token = request.json.get('loginToken')
+        content = request.json.get('content')
         id = request.json.get('id')
-        
+
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT * FROM user WHERE email=?",[email,])
+            cursor.execute("INSERT INTO tweets(user_id, content) VALUES(?,?)",[id, content])
             conn.commit()
-            user = cursor.fetchall()
-            if user['email'] == email and user['password'] == password:
-                login_token = uuid4().hex
-                cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [id, login_token])
-                conn.commit()
-                print (login_token) 
-                return Response(json.dumps(user, login_token, default=str),
-                                mimetype="application/jso,n",
-                                status=200)  
-            else: 
-                return ("Login unsuccessful, please try again")
+            tweet_id = cursor.lastrowid
+            createTweet = {
+                "tweetId": tweet_id,
+                "userId": id,
+                "content": content
+            }
+            return Response(json.dumps(createTweet,
+                            mimetype="applications/json",
+                            status=200))
+            
         except ValueError as error:
             print("Error" +str(error))
+        except ConnectionError:
+            print("Error occured trying to connect to database")
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -73,24 +73,23 @@ def user_session():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Login success")
+        return ("New tweet created")
 
-    elif (request.method == 'DELETE'):
-        conn = None
+    elif (request.method == 'GET'):
         cursor = None
-        login_token = request.json.get('loginToken')
+        conn = None
+        id = request.json.get('id')
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE login_token FROM user_session")
-            conn.commit()
-            resp = {
-               " message" : "login token deleted"
-            }
-            return Response(json.dumps(resp),
-                                mimetype="application/json",
-                                status=200)
-            
+            cursor.execute("SELECT user_id, content FROM user INNER JOIN tweets ON user_id=tweets.userId WHERE id=?", [id,])
+            posts = cursor.fetchall()
+            return Response(posts, default=str,
+                            mimetype="application/json",
+                            status=200)
+    
+        except ConnectionError:
+            print("Error occured trying to connect to database")
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -110,4 +109,5 @@ def user_session():
                 conn.close()
             else:
                 print("Failed to read data")
-    return("You are logged out")
+        return ("Tweet posted")
+

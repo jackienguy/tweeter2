@@ -15,3 +15,13 @@
             #     print('valid email')
             # else:
             #     return('invalid email')
+
+    # if (result != None):
+                #     followers = []
+                #     follower = {
+                #         "userId": "id",
+                #         "follwerEmail": "email",
+                #         "followerUsername": "username",
+                #         "followerBio": "bio",
+                #         "followerBirthdate": "birthdate"
+                #     }

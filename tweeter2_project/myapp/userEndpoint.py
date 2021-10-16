@@ -88,7 +88,6 @@ def user():
             conn.commit()
             newUser = {
                 "userId": user_id,
-                "username": username,
                 "password": password,
                 "bio": bio,
                 "email": email,
@@ -181,14 +180,6 @@ def user():
             (conn, cursor) = dbConnect()
             cursor.execute("DELETE FROM user WHERE id=?",[id,])
             conn.commit()
-            resp = {
-                "loginToken": login_token,
-                "password": password
-            }
-            return Response(json.dumps(resp),
-                        mimetype="application/json",
-                        status=200)
-    
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
