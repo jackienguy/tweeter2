@@ -3,7 +3,7 @@ from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
-import secrets
+from uuid import uuid4
 
 def dbConnect():
     conn = None
@@ -66,25 +66,28 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+        return("Got user info")
   
     elif (request.method == 'POST'):
         conn = None
         cursor = None
-        username = request.json.get("username"),
+        username = request.json.get("username")
         password = request.json.get("password")
         bio = request.json.get("bio")
         email = request.json.get("email")
         birthdate = request.json.get("birthdate")
+        userid = request.json.get("id")
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("INSERT INTO user(username, password, bio, email, birthdate) VALUES(?,?,?,?,?)", [username, password, bio, email, birthdate])
-            conn.commit()
-            login_token = secrets.token_urlsafe(20)
+            user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
+            login_token = uuid4(10).hex
+            print('login_token')
             cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES=?,?",[userid, login_token])
             conn.commit()
             newUser = {
-                "userId": userid,
+                "userId": user_id,
                 "username": username,
                 "password": password,
                 "bio": bio,
@@ -116,6 +119,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+        return("New user sucessfully created")
    
     elif (request.method == 'PATCH'):
         conn = None
@@ -126,7 +130,7 @@ def user():
         bio = request.json.get("bio")
         email = request.json.get("email")
         birthdate = request.json.get("birthdate")
-        id = request.json.get('id')
+        id = request.json.get("id")
         
         try:
             (conn, cursor) = dbConnect()
@@ -164,6 +168,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+        return("User update sucessful")
 
     elif (request.method == 'DELETE'):
         conn = None
@@ -203,10 +208,9 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
-    else: 
-        return Response("Could not delete user",
-                        mimetype="application/json",
-                        status=400)
+        return("User deleted")
+
+
 
    
 

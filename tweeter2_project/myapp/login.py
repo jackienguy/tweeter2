@@ -3,8 +3,10 @@ from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
+from uuid import uuid4
 
-# POST to log in user with username and password combo
+from myapp.userEndpoint import user
+
 def dbConnect():
     conn = None
     cursor = None
@@ -29,22 +31,28 @@ def dbConnect():
     return (conn, cursor)
 
 @app.route('/api/login', methods=['POST','DELETE'])
-def login():
+def user_login():
     if (request.method == 'POST'):
         conn = None
         cursor = None
-        username = request.json.get('username')
+        email = request.json.get('email')
         password = request.json.get('password')
-        login_token = 123
-
+        
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT * FROM user WHERE username=?",[username,])
-            result = cursor.fetchall()
-            return Response(json.dumps(result, default=str),
+            cursor.execute("SELECT * FROM user WHERE email=?",[email,])
+            user = cursor.fetchall()
+            conn.commit()
+            if user['email'] == email and user['password'] == password:
+                login_token = uuid4().hex
+                print (login_token) 
+                return Response(json.dumps(user, default=str),
                                 mimetype="application/json",
-                                status=200)
-                   
+                                status=200)  
+            else: 
+                return ("Login unsuccessful, please try again")
+        except ValueError as error:
+            print("Error" +str(error))
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -64,11 +72,9 @@ def login():
                 conn.close()
             else:
                 print("Failed to read data")
-    else:
-        return ("Login failed")
+        return ("Login success")
 
-def delete_login_session():
-    if (request.method == 'DELETE'):
+    elif (request.method == 'DELETE'):
         conn = None
         cursor = None
         login_token = request.json.get('')
