@@ -29,29 +29,38 @@ def dbConnect():
     return (conn, cursor)
 
 @app.route('/api/login', methods=['POST','DELETE'])
-def user_session():
+def login_session():
     if (request.method == 'POST'):
         conn = None
         cursor = None
         email = request.json.get('email')
         password = request.json.get('password')
-        id = request.json.get('id')
+        user_id = request.json.get('user_id')
         
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT * FROM user WHERE email=?",[email,])
             conn.commit()
             user = cursor.fetchall()
-            if user['email'] == email and user['password'] == password:
-                login_token = uuid4().hex
-                cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [id, login_token])
-                conn.commit()
-                print (login_token) 
-                return Response(json.dumps(user, login_token, default=str),
-                                mimetype="application/jso,n",
+            if cursor.rowcount == 1:
+                if password == user[4]:
+                    login_token = uuid4().hex
+                    cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token])
+                    conn.commit()
+                    print (login_token) 
+                    resp = {
+                        "userId" : user_id,
+                        "username": user[1],
+                        "email" : user[3],
+                        "bio": user[2],
+                        "birthdate": user[6],
+                        "loginToken ": login_token
+                    }
+                return Response(json.dumps(resp, default=str),
+                                mimetype="application/json",
                                 status=200)  
             else: 
-                return ("Login unsuccessful, please try again")
+                return ("Username or password inccorect, please try again")
         except ValueError as error:
             print("Error" +str(error))
         except mariadb.DataError:
@@ -82,10 +91,10 @@ def user_session():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE login_token FROM user_session")
+            cursor.execute("DELETE login_token FROM user_session WHERE loginToken=?", [login_token,])
             conn.commit()
             resp = {
-               " message" : "login token deleted"
+               " message" : "Session deleted"
             }
             return Response(json.dumps(resp),
                                 mimetype="application/json",

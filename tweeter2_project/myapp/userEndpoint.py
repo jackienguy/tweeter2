@@ -76,15 +76,15 @@ def user():
         bio = request.json.get("bio")
         email = request.json.get("email")
         birthdate = request.json.get("birthdate")
-        userid = request.json.get("id")
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("INSERT INTO user(username, password, bio, email, birthdate) VALUES(?,?,?,?,?)", [username, password, bio, email, birthdate])
+            conn.commit()
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
-            login_token = uuid4(10).hex
-            print('login_token')
-            cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES=?,?",[userid, login_token])
+            login_token = uuid4().hex
+            print("login_token")
+            cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES=?,?",[user_id, login_token])
             conn.commit()
             newUser = {
                 "userId": user_id,
@@ -129,23 +129,24 @@ def user():
         bio = request.json.get("bio")
         email = request.json.get("email")
         birthdate = request.json.get("birthdate")
-        id = request.json.get("id")
+        user_id = request.json.get("user_id")
         
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("UPDATE user SET username=?, bio=?, password=?, email=?, birthdate=? WHERE id=?", [id, username, password, bio, email, birthdate])
+            cursor.execute("UPDATE user SET username=?, bio=?, password=?, email=?, birthdate=? WHERE id=?", [user_id, username, password, bio, email, birthdate])
             conn.commit()
-            resp = {
-                "loginToken": login_token,
+            update = {
+               
                 "username": username,
                 "password": password,
                 "bio": bio,
                 "email": email,
                 "birthdate": birthdate
             }
-            return Response(resp,
+            return Response(json.dumps(update),
                         mimetype="application/json",
                         status=200)
+
         except ValueError as error:
             print("Error" +str(error))
         except mariadb.DataError:
@@ -178,8 +179,11 @@ def user():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE FROM user WHERE id=?",[id,])
+            cursor.execute("SELECT user_id, password FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             conn.commit()
+            user = cursor.fetchall()
+            if user:
+                cursor.execute("DELETE FROM user WHERE id=?",[id,])
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:

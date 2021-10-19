@@ -25,3 +25,13 @@
                 #         "followerBio": "bio",
                 #         "followerBirthdate": "birthdate"
                 #     }
+
+
+  #  if user['email'] == email and user['password'] == password:
+  #               login_token = uuid4().hex
+  #               cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [id, login_token])
+  #               conn.commit()
+  #               print (login_token) 
+  #               return Response(json.dumps(user, login_token, default=str),
+  #                               mimetype="application/json",
+  #                               status=200)  

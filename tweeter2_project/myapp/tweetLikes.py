@@ -27,21 +27,22 @@ def dbConnect():
     
     return (conn, cursor)
 
-@app.route('/api/followers', methods=['GET'])
-def getUserFollowers():
+@app.route('/api/tweet-likes', methods=['POST','GET', 'DELETE'])
+def tweetLikes():
     if (request.method == 'GET'):
-        cursor = None
         conn = None
-        id = request.args.get('id')
+        cursor = None
+        tweet_id = request.args.get('tweet_id')
 
         try:
             (conn, cursor) = dbConnect()
-            if id:
-                cursor.execute("SELECT id FROM user INNER JOIN follow ON follow.follower_id =?", [id,])
-                result = cursor.fetchall()
-                return Response(result, Default=str,
-                                mimetype="application/json",
+            if tweet_id:
+                cursor.execute("SELECT * from tweet_like INNER JOIN WHERE tweet_id=?", [tweet_id])
+                likes = cursor.fetchall()
+                return Response(likes, default=str,
+                                mimetypes="application/JSON",
                                 status=200)
+
         except ConnectionError:
             print("Error occured trying to connect to database")
         except mariadb.DataError:
@@ -63,4 +64,38 @@ def getUserFollowers():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Followers retrieved")
+        return ("likes retrieved")
+
+    # elif (request.method == 'POST'):
+    #     cursor = None
+    #     conn = None
+    #     login_token = request.json.get('loginToken')
+    #     tweet_id = request.json.get('tweet_id')
+
+    #     try: 
+    #         (conn, cursor) = dbConnect()
+    #         cursor.execute('INSERT')
+        
+        
+    #     except ConnectionError:
+    #         print("Error occured trying to connect to database")
+    #     except mariadb.DataError:
+    #         print("something went wrong with your data")
+    #     except mariadb.OperationalError:
+    #         print("opertational error on the connection")
+    #     except mariadb.ProgrammingError:
+    #         print("apparently, you don't know how to code")
+    #     except mariadb.IntegrityError:
+    #         print("Error with DB integrity. most likelu constraint failure")
+    #     except:
+    #         print("Something went wrong")
+
+    #     finally:
+    #         if (cursor != None):
+    #             cursor.close()
+    #         if (conn != None):
+    #             conn.rollback()
+    #             conn.close()
+    #         else:
+    #             print("Failed to read data")
+    #     return ("likes retrieved")
