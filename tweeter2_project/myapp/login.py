@@ -3,7 +3,8 @@ from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
-from uuid import uuid4
+import secrets
+from werkzeug.security import generate_password_hash, check_password_hash
 
 def dbConnect():
     conn = None
@@ -36,18 +37,19 @@ def login_session():
         email = request.json.get('email')
         password = request.json.get('password')
         user_id = request.json.get('user_id')
+        user = None
         
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT * FROM user WHERE email=?",[email,])
             conn.commit()
             user = cursor.fetchall()
-            if cursor.rowcount == 1:
-                if password == user[4]:
-                    login_token = uuid4().hex
+            login_token = secrets.token_hex(16)
+            print (login_token) 
+            if (user != None): #If user exist
+                if check_password_hash(user.password, password): #Want to check the password entered equals password stored  
                     cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token])
                     conn.commit()
-                    print (login_token) 
                     resp = {
                         "userId" : user_id,
                         "username": user[1],
@@ -82,6 +84,7 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return ("Login success")
 
     elif (request.method == 'DELETE'):
@@ -91,15 +94,9 @@ def login_session():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE login_token FROM user_session WHERE loginToken=?", [login_token,])
+            cursor.execute("DELETE * FROM user_session WHERE loginToken=?", [login_token,])
             conn.commit()
-            resp = {
-               " message" : "Session deleted"
-            }
-            return Response(json.dumps(resp),
-                                mimetype="application/json",
-                                status=200)
-            
+          
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -119,4 +116,6 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-    return("You are logged out")
+    return Response("You are logged out",
+                    mimetype="application/json",
+                    status=200)

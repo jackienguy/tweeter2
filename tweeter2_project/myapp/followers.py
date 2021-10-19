@@ -32,14 +32,14 @@ def getUserFollowers():
     if (request.method == 'GET'):
         cursor = None
         conn = None
-        id = request.args.get('id')
+        user_id = request.args.get('user_id')
 
         try:
             (conn, cursor) = dbConnect()
-            if id:
-                cursor.execute("SELECT id FROM user INNER JOIN follow ON follow.follower_id =?", [id,])
-                result = cursor.fetchall()
-                return Response(result, Default=str,
+            if (user_id != None):
+                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id WHERE follow.follower_id =?", [user_id,])
+                followers = cursor.fetchall()
+                return Response(json.dumps(followers, Default=str),
                                 mimetype="application/json",
                                 status=200)
         except ConnectionError:

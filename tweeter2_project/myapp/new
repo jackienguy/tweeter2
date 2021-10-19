@@ -35,3 +35,18 @@
   #               return Response(json.dumps(user, login_token, default=str),
   #                               mimetype="application/json",
   #                               status=200)  
+
+# Sign in security:
+
+# email_exist = User.query.filter_by(email=email).first()
+
+
+#   if email_exist:
+#         return("Email is already in user")
+#   elif len(email) < 10:
+#     return ("email too shor", category='error')
+
+#   elif len(password) < 6:
+#     return ("Password need to be at least 6 characters long")
+#   else:
+#     return Response

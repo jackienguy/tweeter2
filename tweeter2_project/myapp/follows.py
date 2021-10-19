@@ -28,16 +28,17 @@ def dbConnect():
     return (conn, cursor)
 
 @app.route('/api/follows', methods=['GET', 'POST', 'DELETE'])
-def getUserFollows():
+def UserFollows():
     if (request.method == 'GET'):
         conn = None
         cursor = None
-        id = request.args.get('id')
+        user_id = request.args.get('user_id')
 
         try:
             (conn, cursor) = dbConnect()
             if id:
-                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id =?", [id,])
+                #Inner joined on follwer_id as user_id as the follower, getting the list user_id is following 
+                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.follower_id = user.id WHERE following_id=?", [user_id,])
                 result = cursor.fetchall()
                 return Response(json.dumps(result, default=str),
                             mimetype="application/json",
@@ -76,9 +77,13 @@ def getUserFollows():
 
         try:
             (conn, cursor) = dbConnect()
-            if login_token !="":
+            if (login_token !=None and following_id != None):
+                # Get user id of user who have successfully logged in 
                 cursor. execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token])
-
+                user_id = cursor.fecthone()[0] # only fectch first row user_id 
+                # following_id equals the user_id we want to follow, follower_id equals the user_id of who is following you
+                cursor.execute("INSERT INTO follows (following_id, follower_id) VALUES(?,?)", [user_id, following_id])
+                conn.commit()
 
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -111,10 +116,10 @@ def getUserFollows():
 
         try:
             (conn, cursor) = dbConnect()
-            if (request.json.get('loginToken' != None)):
+            if (login_token !=None and following_id != None):
                 cursor. execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token])
-                userId = cursor.fetchall()
-                cursor.execute("DELETE FROM follows WHERE user_id? AND following_id=?", [userId, following_id])
+                user_id = cursor.fetchone()[0]
+                cursor.execute("DELETE FROM follows WHERE following_id? AND follower_id=?", [user_id, following_id])
                 conn.commit()
 
         except ConnectionError:

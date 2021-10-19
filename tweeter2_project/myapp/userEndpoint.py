@@ -1,9 +1,10 @@
 import mariadb
+from werkzeug.security import generate_password_hash
 from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
-from uuid import uuid4
+import secrets
 
 def dbConnect():
     conn = None
@@ -40,8 +41,8 @@ def user():
             (conn, cursor) = dbConnect()
             if id:
                 cursor.execute("SELECT * FROM user WHERE id=?", [id,])
-                result = cursor.fetchall()
-                return Response(json.dumps(result, default=str),
+                user_data = cursor.fetchall()
+                return Response(json.dumps(user_data, default=str),
                                 mimetype="application/json",
                                 status=200)
             else:
@@ -82,13 +83,13 @@ def user():
             cursor.execute("INSERT INTO user(username, password, bio, email, birthdate) VALUES(?,?,?,?,?)", [username, password, bio, email, birthdate])
             conn.commit()
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
-            login_token = uuid4().hex
-            print("login_token")
+            login_token = secrets.token_hex(16)
+            print (login_token) 
             cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES=?,?",[user_id, login_token])
             conn.commit()
             newUser = {
                 "userId": user_id,
-                "password": password,
+                "password": generate_password_hash(password, method='sah256'),
                 "bio": bio,
                 "email": email,
                 "birthdate": birthdate,
@@ -133,6 +134,8 @@ def user():
         
         try:
             (conn, cursor) = dbConnect()
+            # Get userId to update info
+            cursor.execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token,])
             cursor.execute("UPDATE user SET username=?, bio=?, password=?, email=?, birthdate=? WHERE id=?", [user_id, username, password, bio, email, birthdate])
             conn.commit()
             update = {
