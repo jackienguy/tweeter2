@@ -46,7 +46,7 @@ def user():
                                 mimetype="application/json",
                                 status=200)
             else:
-                return('User Id not found')
+                return('User id not found')
 
         except mariadb.DataError:
             print("something went wrong with your data")
@@ -84,7 +84,6 @@ def user():
             conn.commit()
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
             login_token = secrets.token_hex(16)
-            print (login_token) 
             cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)",[user_id, login_token])
             conn.commit()
             newUser = {
@@ -139,7 +138,6 @@ def user():
             cursor.execute("UPDATE user SET username=?, bio=?, password=?, email=?, birthdate=? WHERE id=?", [user_id, username, password, bio, email, birthdate])
             conn.commit()
             update = {
-               
                 "username": username,
                 "password": password,
                 "bio": bio,

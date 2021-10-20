@@ -91,14 +91,12 @@ def login_session():
 
         try:
             (conn, cursor) = dbConnect()
-            if login_token !=None:
-                cursor.execute("DELETE * FROM user_session WHERE loginToken=?", [login_token,])
-                conn.commit()
-                return Response("User session deleted",
-                                mimitype="text/plain",
-                                status=204)
-            else:
-                return ("Logout fail")
+            cursor.execute("DELETE FROM user_session WHERE loginToken=?", [login_token,])
+            conn.commit()
+            return Response("User session deleted",
+                            mimetype="text/plain",
+                            status=204)
+           
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -118,4 +116,4 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-    return ("You are logged out")
+        return ("You are logged out")

@@ -1,8 +1,10 @@
+from datetime import datetime
 import mariadb
 from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
+import datetime
 
 def dbConnect():
     conn = None
@@ -34,27 +36,28 @@ def tweets():
         conn = None
         login_token = request.json.get('loginToken')
         content = request.json.get('content')
-        user_id = request.json.get('user_id')
+        tweet_id = None
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT * FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+            cursor.execute("SELECT user_id, username FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE user_session.loginToken=?", [login_token,])
             user = cursor.fetchall()
-            cursor.execute("INSERT INTO tweets(user_id, content) VALUES(?,?)",[user_id, content,])
+            created_At = datetime.datetime.now()
+            user_id = user[0][0]
+            cursor.execute("INSERT INTO tweets(user_id, content, created_At) VALUES(?,?,?)",[user_id, content, created_At])
             conn.commit()
-            rows = cursor.rowcount
             tweet_id = cursor.lastrowid
             createTweet = {
                 "tweetId": tweet_id,
-                "userId": user_id,
-                "username": "" ,
+                "userId": user[0][0],
+                "username": user[0][1],
                 "content": content,
-                "createdAt": ""
+                "createdAt": created_At
             }
-            return Response(json.dumps(createTweet,
+            return Response(json.dumps(createTweet, default=str),
                             mimetype="applications/json",
-                            status=200))
-            
+                            status=200)
+
         except ValueError as error:
             print("Error" +str(error))
         except ConnectionError:
@@ -90,14 +93,14 @@ def tweets():
         try:
             (conn, cursor) = dbConnect()
             if own_post:
-                cursor.execute("SELECT * FROM user INNER JOIN tweets on user.id = tweets.user_Id WHERE user_id=?",[user_id,])
+                cursor.execute("SELECT * FROM user INNER JOIN tweets on user.id = tweets.user_Id WHERE user_id=?", [user_id])
                 tweet_post = cursor.fetchall()
             elif not_own_post:
                 cursor.execute("SELECT * FROM user INNER JOIN tweet on user.id = tweets.user_Id")
                 tweet_post = cursor.fetchall()
-                return Response(json.dumps(tweet_post), default=str,
-                                mimetype="application/json",
-                                status=200)
+            return Response(json.dumps(tweet_post, default=str),
+                            mimetype="application/json",
+                            status=200)
     
         except ConnectionError:
             print("Error occured trying to connect to database")

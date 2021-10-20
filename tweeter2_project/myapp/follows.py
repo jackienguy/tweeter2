@@ -3,6 +3,7 @@ from myapp import dbcreds, login
 from flask import request, Response
 import json
 from myapp import app
+from myapp.userEndpoint import user
 
 def dbConnect():
     conn = None
@@ -36,15 +37,24 @@ def UserFollows():
 
         try:
             (conn, cursor) = dbConnect()
-            if id:
-                #Inner joined on follwer_id as user_id as the follower, getting the list user_id is following 
-                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.follower_id = user.id WHERE following_id=?", [user_id,])
-                result = cursor.fetchall()
-                return Response(json.dumps(result, default=str),
-                            mimetype="application/json",
-                            status=200)
-            else:
-                return("Something went wrong, can't get follows")
+
+            #Inner joined on follwer_id and user_id as the follower, getting the list user_id is following 
+            cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id WHERE following_id=?", [user_id,])
+            result = cursor.fetchall()
+            # if (result != None):
+            #     follows_info = []
+            #     for follow in result:
+            #         follows = {
+            #             "userId": result[0],
+            #             "email": result[3],
+            #             "username": result[1],
+            #             "birthdate": result[6],
+            #             "bio": result[2]
+            #         }
+            #         follows.append(follows_info)
+            return Response(json.dumps(result, default=str),
+                        mimetype="application/json",
+                        status=200)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
