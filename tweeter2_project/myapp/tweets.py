@@ -34,20 +34,22 @@ def tweets():
         conn = None
         login_token = request.json.get('loginToken')
         content = request.json.get('content')
-        id = request.json.get('user_id')
+        user_id = request.json.get('user_id')
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT user_id, username FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+            cursor.execute("SELECT * FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             user = cursor.fetchall()
-            cursor.execute("INSERT INTO tweets(user_id, content) VALUES(?,?, ?)",[id, content,])
+            cursor.execute("INSERT INTO tweets(user_id, content) VALUES(?,?)",[user_id, content,])
             conn.commit()
-            result = cursor.rowcount
+            rows = cursor.rowcount
             tweet_id = cursor.lastrowid
             createTweet = {
                 "tweetId": tweet_id,
-                "userId": id,
-                "content": content
+                "userId": user_id,
+                "username": "" ,
+                "content": content,
+                "createdAt": ""
             }
             return Response(json.dumps(createTweet,
                             mimetype="applications/json",
@@ -88,13 +90,14 @@ def tweets():
         try:
             (conn, cursor) = dbConnect()
             if own_post:
-                cursor.execute("SELECT * FROM tweets INNER JOIN user on user.id = tweets.user_Id WHERE user_id=?",[user_id,])
+                cursor.execute("SELECT * FROM user INNER JOIN tweets on user.id = tweets.user_Id WHERE user_id=?",[user_id,])
+                tweet_post = cursor.fetchall()
             elif not_own_post:
-                 cursor.execute("SELECT * FROM tweets INNER JOIN user on user.id = tweets.user_Id")
-            posts = cursor.fetchall()
-            return Response(posts, default=str,
-                            mimetype="application/json",
-                            status=200)
+                cursor.execute("SELECT * FROM user INNER JOIN tweet on user.id = tweets.user_Id")
+                tweet_post = cursor.fetchall()
+                return Response(json.dumps(tweet_post), default=str,
+                                mimetype="application/json",
+                                status=200)
     
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -171,8 +174,10 @@ def tweets():
 
         try:
             (conn, cursor) = dbConnect()
-            if login_token:
-                cursor.execute("DELETE FROM tweets WHERE id=?", [tweet_id])
+            cursor.execute("SELECT user_id FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+            user_id = cursor.fetchone()[0]
+            if login_token !=None:
+                cursor.execute("DELETE FROM tweets WHERE tweet_id=?", [tweet_id])
                 conn.commit()
             else:
                 return ("User not authenticated, cannot delete tweet")

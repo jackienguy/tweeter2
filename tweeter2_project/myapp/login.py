@@ -4,7 +4,7 @@ from flask import request, Response
 import json
 from myapp import app
 import secrets
-from werkzeug.security import generate_password_hash, check_password_hash
+# from werkzeug.security import check_password_hash
 
 def dbConnect():
     conn = None
@@ -36,28 +36,26 @@ def login_session():
         cursor = None
         email = request.json.get('email')
         password = request.json.get('password')
-        user_id = request.json.get('user_id')
         user = None
         
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT * FROM user WHERE email=?",[email,])
-            conn.commit()
+            cursor.execute("SELECT * FROM user WHERE email=? AND password=?",[email, password]) #If combination matches, will return rowcount 1, if combination do not match, will return 0
             user = cursor.fetchall()
             login_token = secrets.token_hex(16)
-            print (login_token) 
-            if (user != None): #If user exist
-                if check_password_hash(user.password, password): #Want to check the password entered equals password stored  
-                    cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token])
-                    conn.commit()
-                    resp = {
-                        "userId" : user_id,
-                        "username": user[1],
-                        "email" : user[3],
-                        "bio": user[2],
-                        "birthdate": user[6],
-                        "loginToken ": login_token
-                    }
+            if cursor.rowcount == 1: #If user exist will = 1
+                user_id = user[0][0]
+                cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token])
+                conn.commit()
+                # fetchall returns dictionaries with tuples. Indexes reflect dictionary index and indexes of the tuples 
+                resp = {
+                    "userId" : user[0][0],
+                    "username": user[0][1],
+                    "email" : user[0][3],
+                    "bio": user[0][2],
+                    "birthdate": user[0][6],
+                    "loginToken ": login_token
+                }
                 return Response(json.dumps(resp, default=str),
                                 mimetype="application/json",
                                 status=200)  
@@ -84,7 +82,6 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-
         return ("Login success")
 
     elif (request.method == 'DELETE'):
@@ -94,9 +91,14 @@ def login_session():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE * FROM user_session WHERE loginToken=?", [login_token,])
-            conn.commit()
-          
+            if login_token !=None:
+                cursor.execute("DELETE * FROM user_session WHERE loginToken=?", [login_token,])
+                conn.commit()
+                return Response("User session deleted",
+                                mimitype="text/plain",
+                                status=204)
+            else:
+                return ("Logout fail")
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -116,6 +118,4 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-    return Response("You are logged out",
-                    mimetype="application/json",
-                    status=200)
+    return ("You are logged out")

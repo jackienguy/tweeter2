@@ -66,36 +66,36 @@ def tweetLikes():
                 print("Failed to read data")
         return ("likes retrieved")
 
-    # elif (request.method == 'POST'):
-    #     cursor = None
-    #     conn = None
-    #     login_token = request.json.get('loginToken')
-    #     tweet_id = request.json.get('tweet_id')
+    elif (request.method == 'POST'):
+        cursor = None
+        conn = None
+        login_token = request.json.get('loginToken')
+        tweet_id = request.json.get('tweet_id')
 
-    #     try: 
-    #         (conn, cursor) = dbConnect()
-    #         cursor.execute('INSERT')
+        try: 
+            (conn, cursor) = dbConnect()
+            cursor.execute('INSERT')
         
         
-    #     except ConnectionError:
-    #         print("Error occured trying to connect to database")
-    #     except mariadb.DataError:
-    #         print("something went wrong with your data")
-    #     except mariadb.OperationalError:
-    #         print("opertational error on the connection")
-    #     except mariadb.ProgrammingError:
-    #         print("apparently, you don't know how to code")
-    #     except mariadb.IntegrityError:
-    #         print("Error with DB integrity. most likelu constraint failure")
-    #     except:
-    #         print("Something went wrong")
+        except ConnectionError:
+            print("Error occured trying to connect to database")
+        except mariadb.DataError:
+            print("something went wrong with your data")
+        except mariadb.OperationalError:
+            print("opertational error on the connection")
+        except mariadb.ProgrammingError:
+            print("apparently, you don't know how to code")
+        except mariadb.IntegrityError:
+            print("Error with DB integrity. most likelu constraint failure")
+        except:
+            print("Something went wrong")
 
-    #     finally:
-    #         if (cursor != None):
-    #             cursor.close()
-    #         if (conn != None):
-    #             conn.rollback()
-    #             conn.close()
-    #         else:
-    #             print("Failed to read data")
-    #     return ("likes retrieved")
+        finally:
+            if (cursor != None):
+                cursor.close()
+            if (conn != None):
+                conn.rollback()
+                conn.close()
+            else:
+                print("Failed to read data")
+        return ("likes retrieved")

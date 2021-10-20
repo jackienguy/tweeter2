@@ -85,7 +85,7 @@ def user():
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
             login_token = secrets.token_hex(16)
             print (login_token) 
-            cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES=?,?",[user_id, login_token])
+            cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)",[user_id, login_token])
             conn.commit()
             newUser = {
                 "userId": user_id,
@@ -178,15 +178,15 @@ def user():
         cursor = None
         login_token = request.json.get("loginToken")
         password = request.json.get('password')
-        id = request.json.get('id')
+        user_id = request.json.get('user_id')
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT user_id, password FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             conn.commit()
             user = cursor.fetchall()
-            if user:
-                cursor.execute("DELETE FROM user WHERE id=?",[id,])
+            if (user != None):
+                cursor.execute("DELETE FROM user WHERE id=?",[user_id,])
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
