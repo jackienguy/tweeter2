@@ -79,7 +79,7 @@ def tweetLikes():
 
         try: 
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT user_id, loginToken FROM user_session INNER JOIN user ON user_session.user_id = user.id")
+            cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             user = cursor.fetchall()
             user_id = user[0][0]
             if user[0][1] == login_token:
@@ -121,7 +121,7 @@ def tweetLikes():
 
         try: 
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT user_id, loginToken FROM user_session INNER JOIN user ON user_session.user_id = user.id")
+            cursor.execute("SELECT user_id, loginToken FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             user = cursor.fetchall()
             user_id = user[0][0]
             if user[0][1] == login_token:

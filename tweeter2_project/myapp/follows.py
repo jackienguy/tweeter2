@@ -89,8 +89,9 @@ def UserFollows():
             (conn, cursor) = dbConnect()
             if (login_token !=None and following_id != None):
                 # Get user id of user who have successfully logged in 
-                cursor. execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token])
-                user_id = cursor.fecthone()[0] # only fectch first row user_id 
+                cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+                user = cursor.fecthall() 
+                user_id = user[0][0]
                 # following_id equals the user_id we want to follow, follower_id equals the user_id of who is following you
                 cursor.execute("INSERT INTO follows (following_id, follower_id) VALUES(?,?)", [user_id, following_id])
                 conn.commit()
@@ -127,8 +128,9 @@ def UserFollows():
         try:
             (conn, cursor) = dbConnect()
             if (login_token !=None and following_id != None):
-                cursor. execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token])
-                user_id = cursor.fetchone()[0]
+                cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+                user = cursor.fecthall() 
+                user_id = user[0][0]
                 cursor.execute("DELETE FROM follows WHERE following_id? AND follower_id=?", [user_id, following_id])
                 conn.commit()
 
