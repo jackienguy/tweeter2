@@ -50,3 +50,5 @@
 #     return ("Password need to be at least 6 characters long")
 #   else:
 #     return Response
+
+# cursor.execute("SELECT * FROM comment INNER JOIN user ON comment.user_id = user.id WHERE comment.tweet_id=?", [tweet_id,])

@@ -178,13 +178,15 @@ def tweets():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT user_id FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
-            user_id = cursor.fetchall()
-            if login_token !=None:
+            cursor.execute("SELECT user_id, loginToken FROM user_session INNER JOIN user ON user_session.user_id = user.id")
+            user= cursor.fetchall()
+            if user[0][1] == login_token:
                 cursor.execute("DELETE FROM tweets WHERE id=?", [tweet_id])
                 conn.commit()
             else:
-                return ("User not authenticated, cannot delete tweet")
+                return Response("Action denied, you are not authenticated user",
+                            mimetype="text/plain",
+                            status=400)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
