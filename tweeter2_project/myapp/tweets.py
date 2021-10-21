@@ -130,13 +130,14 @@ def tweets():
         conn = None
         login_token = request.json.get('loginToken')
         content = request.json.get('content')
-        tweet_id = request.json.get('id')
-        id = request.json.get('userId')
+        tweet_id = request.json.get('tweet_id')
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT tweet_id, content FROM tweets INNER JOIN user ON user.id = tweets.user_Id WHERE user_id=?", [id,])
-            cursor.excute("UPDATE tweets SET content=? WHERE id=?", [content, tweet_id])
+            cursor.execute("SELECT user_id, FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE user_session.loginToken=?", [login_token,])
+            user = cursor.fetchall()
+            user_id = user[0][0]
+            cursor.excute("UPDATE tweets SET content=? WHERE tweet_id=? AND user_id=?", [content, tweet_id, user_id])
             conn.commit()
             editedTweet = {
                 "tweetId" : tweet_id,
@@ -173,14 +174,14 @@ def tweets():
         cursor = None
         conn = None
         login_token = request.json.get('loginToken')
-        tweet_id = request.json.get('id')
+        tweet_id = request.json.get('tweet_id')
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT user_id FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
-            user_id = cursor.fetchone()[0]
+            user_id = cursor.fetchall()
             if login_token !=None:
-                cursor.execute("DELETE FROM tweets WHERE tweet_id=?", [tweet_id])
+                cursor.execute("DELETE FROM tweets WHERE id=?", [tweet_id])
                 conn.commit()
             else:
                 return ("User not authenticated, cannot delete tweet")
@@ -206,7 +207,9 @@ def tweets():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Tweet deleted")
+        return Response("Tweet deleted",
+                        mimetype="text/plain",
+                        status=200)
 
 
 
