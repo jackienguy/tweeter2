@@ -143,7 +143,7 @@ def comment():
             commenter = cursor.fetchall()
             created_At = datetime.datetime.now()
             # To check permissio, verify login token as well as the user_id matches comment.user_id
-            if user[0][1] == login_token and user[0][0] == commenter[0][2]:
+            if user[0][1] == login_token and user_id == commenter[0][2]:
                 cursor.execute("UPDATE comment SET content=? WHERE id=?", [content, comment_id,])
                 conn.commit()
                 editedComment = {
@@ -201,7 +201,7 @@ def comment():
             user_id = user[0][0]
             cursor.execute("SELECT * FROM comment WHERE id=?",[comment_id,])
             commenter = cursor.fetchall()
-            if user[0][1] == login_token and user[0][0] == commenter[0][2]:
+            if user[0][1] == login_token and user_id == commenter[0][2]:
                 cursor.execute("DELETE FROM comment WHERE id=?", [comment_id])
                 conn.commit()
                 return Response("Comment deleted",

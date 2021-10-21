@@ -28,7 +28,7 @@ def dbConnect():
     
     return (conn, cursor)
 
-@app.route('/api/tweetLikes', methods=['POST','GET', 'DELETE'])
+@app.route('/api/tweet-likes', methods=['POST','GET', 'DELETE'])
 def tweetLikes():
     if (request.method == 'GET'):
         conn = None
