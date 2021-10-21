@@ -81,7 +81,9 @@ def tweets():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("New tweet created")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'GET'):
         cursor = None
@@ -100,7 +102,7 @@ def tweets():
                 tweet_post = cursor.fetchall()
             return Response(json.dumps(tweet_post, default=str),
                             mimetype="application/json",
-                            status=200)
+                            status=201)
     
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -123,7 +125,9 @@ def tweets():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Tweet post retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
     
     elif (request.method == 'PATCH'):
         cursor = None
@@ -145,7 +149,7 @@ def tweets():
             }
             return Response(json.dumps(editedTweet),
                             mimetype="application/json",
-                            status=200,)
+                            status=200)
         
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -168,7 +172,9 @@ def tweets():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Tweet edit updated")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'DELETE'):
         cursor = None
@@ -183,10 +189,13 @@ def tweets():
             if user[0][1] == login_token:
                 cursor.execute("DELETE FROM tweets WHERE id=?", [tweet_id])
                 conn.commit()
+                return Response("Tweet deleted",
+                                mimetype="text/html",
+                                status=200)
             else:
                 return Response("Action denied, you are not authenticated user",
                             mimetype="text/plain",
-                            status=400)
+                            status=401)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -209,9 +218,10 @@ def tweets():
                 conn.close()
             else:
                 print("Failed to read data")
-        return Response("Tweet deleted",
+        return Response("Error something went wrong",
                         mimetype="text/plain",
-                        status=200)
+                        status=500)
+
 
 
 

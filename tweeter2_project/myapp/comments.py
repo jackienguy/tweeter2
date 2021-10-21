@@ -1,5 +1,4 @@
 import mariadb
-from werkzeug.security import generate_password_hash
 from myapp import dbcreds
 from flask import request, Response
 import json
@@ -65,7 +64,9 @@ def comment():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("comments retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'POST'):
         cursor = None
@@ -98,7 +99,7 @@ def comment():
             else:
                 return Response("Action denied, you are not authenticated user",
                             mimetype="text/plain",
-                            status=400)
+                            status=401)
         
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -121,7 +122,9 @@ def comment():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("comments retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'PATCH'):
         cursor = None
@@ -135,10 +138,11 @@ def comment():
             cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [ login_token,])
             user = cursor.fetchall()
             user_id = user[0][0]
-
+            # Need to get user_id associated to the comment_id
             cursor.execute("SELECT * FROM comment WHERE id=?",[comment_id,])
             commenter = cursor.fetchall()
             created_At = datetime.datetime.now()
+            # To check permissio, verify login token as well as the user_id matches comment.user_id
             if user[0][1] == login_token and user[0][0] == commenter[0][2]:
                 cursor.execute("UPDATE comment SET content=? WHERE id=?", [content, comment_id,])
                 conn.commit()
@@ -156,7 +160,7 @@ def comment():
             else:
                 return Response("Action denied, you are not authenticated user",
                                 mimetype="text/plain",
-                                status=400)
+                                status=401)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -179,9 +183,59 @@ def comment():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Error, something went wrong")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
-    # elif (request.method == 'DELETE'):
+
+    elif (request.method == 'DELETE'):
+        cursor = None
+        conn = None
+        login_token = request.json.get('loginToken')
+        comment_id = request.json.get('comment_id')
+
+        try:
+            (conn, cursor) = dbConnect()
+            cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [ login_token,])
+            user = cursor.fetchall()
+            user_id = user[0][0]
+            cursor.execute("SELECT * FROM comment WHERE id=?",[comment_id,])
+            commenter = cursor.fetchall()
+            if user[0][1] == login_token and user[0][0] == commenter[0][2]:
+                cursor.execute("DELETE FROM comment WHERE id=?", [comment_id])
+                conn.commit()
+                return Response("Comment deleted",
+                                mimetype="text/html",
+                                status=200)
+            else:
+                return Response("Action denied, you are not authenticated user",
+                            mimetype="text/plain",
+                            status=401)
+
+        except ConnectionError:
+            print("Error occured trying to connect to database")
+        except mariadb.DataError:
+            print("something went wrong with your data")
+        except mariadb.OperationalError:
+            print("opertational error on the connection")
+        except mariadb.ProgrammingError:
+            print("apparently, you don't know how to code")
+        except mariadb.IntegrityError:
+            print("Error with DB integrity. most likelu constraint failure")
+        except:
+            print("Something went wrong")
+
+        finally:
+            if (cursor != None):
+                cursor.close()
+            if (conn != None):
+                conn.rollback()
+                conn.close()
+            else:
+                print("Failed to read data")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
 
 

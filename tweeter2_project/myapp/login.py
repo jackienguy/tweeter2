@@ -82,7 +82,10 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Login success")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
 
     elif (request.method == 'DELETE'):
         conn = None
@@ -93,8 +96,8 @@ def login_session():
             (conn, cursor) = dbConnect()
             cursor.execute("DELETE FROM user_session WHERE loginToken=?", [login_token,])
             conn.commit()
-            return Response("User session deleted",
-                            mimetype="text/plain",
+            return Response("Logout success",
+                            mimetype="text/html",
                             status=204)
            
         except mariadb.DataError:
@@ -116,4 +119,6 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("You are logged out")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)

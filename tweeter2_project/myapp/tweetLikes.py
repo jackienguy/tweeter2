@@ -69,7 +69,9 @@ def tweetLikes():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("likes retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'POST'):
         cursor = None
@@ -85,6 +87,9 @@ def tweetLikes():
             if user[0][1] == login_token:
                 cursor.execute("INSERT INTO tweet_like(tweet_id, user_id) VALUES(?,?)",[tweet_id, user_id])
                 conn.commit()
+                return Response("Liked Tweet",
+                                mimetype="text/html",
+                                status=200)
             else:
                 return Response("Action denied, you are not authenticated user",
                                 mimetype="text/plain",
@@ -111,7 +116,9 @@ def tweetLikes():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Tweet liked")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
 
     elif (request.method == 'DELETE'):
         cursor = None
@@ -127,6 +134,9 @@ def tweetLikes():
             if user[0][1] == login_token:
                 cursor.execute("DELETE FROM tweet_like WHERE tweet_id=? AND user_id=?",[tweet_id, user_id])
                 conn.commit()
+                return Response("Unliked Tweet",
+                                mimetype="text/html",
+                                status=200)
             else:
                 return Response("Action denied, you are not authenticated user",
                                 mimetype="text/plain",
@@ -153,4 +163,7 @@ def tweetLikes():
                 conn.close()
             else:
                 print("Failed to read data")
-        return ("Unlike tweet")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+

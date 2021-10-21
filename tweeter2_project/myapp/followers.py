@@ -63,4 +63,7 @@ def getUserFollowers():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Followers retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+

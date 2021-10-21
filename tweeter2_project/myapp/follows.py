@@ -77,7 +77,10 @@ def UserFollows():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Follows retrieved")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
     
     elif (request.method == 'POST'):
         conn = None
@@ -95,6 +98,9 @@ def UserFollows():
                 # following_id equals the user_id we want to follow, follower_id equals the user_id of who is following you
                 cursor.execute("INSERT INTO follows (following_id, follower_id) VALUES(?,?)", [user_id, following_id])
                 conn.commit()
+                return Response("Following",
+                                mimetype="text/html",
+                                status=200)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -117,8 +123,10 @@ def UserFollows():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Follows retrieved")
-    
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
     elif (request.method == 'DELETE'):
         conn = None
         cursor = None
@@ -133,6 +141,9 @@ def UserFollows():
                 user_id = user[0][0]
                 cursor.execute("DELETE FROM follows WHERE following_id? AND follower_id=?", [user_id, following_id])
                 conn.commit()
+                return Response("Unfollowed",
+                                mimetype="text/html",
+                                status=200)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
@@ -155,4 +166,6 @@ def UserFollows():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Unfollowed user")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)

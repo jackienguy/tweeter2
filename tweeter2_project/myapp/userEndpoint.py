@@ -67,7 +67,9 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("Got user info")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
   
     elif (request.method == 'POST'):
         conn = None
@@ -118,8 +120,10 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("New user sucessfully created")
-   
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
     elif (request.method == 'PATCH'):
         conn = None
         cursor = None
@@ -169,7 +173,10 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("User update sucessful")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
 
     elif (request.method == 'DELETE'):
         conn = None
@@ -204,7 +211,10 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
-        return("User deleted")
+        return Response("Error something went wrong",
+                        mimetype="text/plain",
+                        status=500)
+
 
 
 
