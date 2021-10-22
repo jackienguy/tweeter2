@@ -33,13 +33,25 @@ def comment():
     if (request.method == 'GET'):
         cursor = None
         conn = None
-        tweet_id = request.args.get('tweet_id')
+        tweet_id = request.args.get('tweetId')
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT * FROM comment INNER JOIN user ON user.id = comment.user_id INNER JOIN tweets ON comment.user_id = tweets.user_id WHERE tweet_id=?", [tweet_id,])
             comments = cursor.fetchall()
-            return Response(json.dumps(comments, default=str),
+            if cursor.rowcount >= 1:
+                comment_list = []
+                for comment in comments:
+                    resp = {
+                        "commentId": comment[0],
+                        "tweetId": tweet_id,
+                        "userId": comment[2],
+                        "username": comment[3],
+                        "content": comment[5],
+                        "createdAt": comment[4],
+                    }
+                    comment_list.append(resp)
+            return Response(json.dumps(comment_list, default=str),
                                 mimetype="application/json",
                                 status=200)
     

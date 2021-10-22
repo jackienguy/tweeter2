@@ -33,19 +33,23 @@ def tweetLikes():
     if (request.method == 'GET'):
         conn = None
         cursor = None
-        tweet_id = request.args.get('tweet_id')
+        tweet_id = request.args.get('tweetId')
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT user_id, username FROM user INNER JOIN tweet_like ON tweet_like.user_id=user.id WHERE tweet_id=?", [tweet_id,])
-            likes = cursor.fetchall()
-            resp = {
-                "tweetId": likes[0][0],
-                "userId": likes[0][1],
-                "username":''
-            }
-            return Response(json.dumps(resp, default=str),
-                            mimetypes="application/JSON",
+            result = cursor.fetchall()
+            if cursor.rowcount > 0:
+                like_list = []
+                for likes in result:
+                    resp = {
+                        "tweetId": tweet_id,
+                        "userId": likes[0],
+                        "username": likes[1]
+                    }
+                    like_list.append(resp)
+            return Response(json.dumps(like_list, default=str),
+                            mimetype="application/JSON",
                             status=200)
 
         except ConnectionError:

@@ -34,18 +34,22 @@ def commentLikes():
     if (request.method == 'GET'):
         conn = None
         cursor = None
-        comment_id = request.args.get('comment_id')
+        comment_id = request.args.get('commentId')
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute('SELECT user_id, username FROM user INNER JOIN comment_like on comment_like.user_Id = user.id WHERE comment_id=?',[comment_id,])
             result = cursor.fetchall()
-            likes = {
-            "commentId": comment_id,
-            "userId": result[0][0],
-            "username": result[0][1]
-             }
-            return Response(json.dumps(likes, default=str),
+            if cursor.rowcount >= 1: #rowcount of >=1 as comment can have many likes by different users, alternatively can also be > 0
+                commentLikes = []  #converting dict to json. First creating a list, looping through dict and appeneding keys and values to the list
+                for user in result: #iterating through users and returning specific user data
+                    likes = {
+                    "commentId": comment_id,
+                    "userId": user[0],
+                    "username": user[1]
+                    }
+                    commentLikes.append(likes)
+            return Response(json.dumps(commentLikes, default=str),
                             mimetype="application/json",
                             status=200)
 
