@@ -62,3 +62,5 @@
   #                   "username": result[0][1]
   #               }
   #               commentLikes.append(likes)
+
+  # cursor.execute("UPDATE user SET username=?, bio=?, email=?, birthdate=? WHERE id=?", [user_id, username, bio, email, birthdate])

@@ -5,6 +5,7 @@ from flask import request, Response
 import json
 from myapp import app
 import secrets
+import re
 
 def dbConnect():
     conn = None
@@ -95,7 +96,11 @@ def user():
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("INSERT INTO user(username, password, bio, email, birthdate) VALUES(?,?,?,?,?)", [username, password, bio, email, birthdate])
-            conn.commit()
+            cursor.execute("SELECT email FROM user WHERE email=?", [email,])
+            if cursor.rowcount == 1:
+                    return("Email not available, please use another email")
+            if (len(password) < 8):
+                return ("Password need to be at least 8 characters long")
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
             login_token = secrets.token_hex(16)
             cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)",[user_id, login_token])
@@ -142,28 +147,39 @@ def user():
         cursor = None
         login_token = request.json.get("loginToken")
         username = request.json.get("username")
-        password = request.json.get("password")
         bio = request.json.get("bio")
         email = request.json.get("email")
         birthdate = request.json.get("birthdate")
-        user_id = request.json.get("user_id")
         
         try:
             (conn, cursor) = dbConnect()
-            # Get userId to update info
-            cursor.execute("SELECT user_id FROM user_session WHERE loginToken=?", [login_token,])
-            cursor.execute("UPDATE user SET username=?, bio=?, password=?, email=?, birthdate=? WHERE id=?", [user_id, username, password, bio, email, birthdate])
+            # Get userId login token to update info
+            cursor.execute("SELECT user_id, loginToken FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [ login_token,])
+            user = cursor.fetchall()
+            user_id = user[0][0]
+            # Update only if there is an input
+            if (username != None and user[0][1] == login_token):
+                cursor.execute("UPDATE user SET username=? WHERE id=?", [username, user_id])
+            if (bio !=None and user[0][1] == login_token):
+                cursor.execute("UPDATE user SET bio=? WHERE id=?", [bio, user_id])
+            if (email != None and user[0][1] == login_token):
+                cursor.execute("UPDATE user SET email=? WHERE id=?", [email, user_id])
+            if (birthdate != None and user[0][1] == login_token):
+                cursor.execute("UPDATE user SET username=? WHERE id=?", [birthdate, user_id])
             conn.commit()
-            update = {
-                "username": username,
-                "password": password,
-                "bio": bio,
-                "email": email,
-                "birthdate": birthdate
-            }
-            return Response(json.dumps(update),
+            cursor.execute("SELECT * FROM user WHERE id=?",[user_id])
+            updated_user = cursor.fetchall()
+            if cursor.rowcount == 1:
+                user_update = {
+                    "userId": updated_user[0][0],
+                    "email": updated_user[0][3],
+                    "username": updated_user[0][1],
+                    "bio": updated_user[0][2],
+                    "birthdate": updated_user[0][4]
+                }
+            return Response(json.dumps(user_update),
                         mimetype="application/json",
-                        status=200)
+                            status=200)
 
         except ValueError as error:
             print("Error" +str(error))
@@ -197,15 +213,18 @@ def user():
         cursor = None
         login_token = request.json.get("loginToken")
         password = request.json.get('password')
-        user_id = request.json.get('user_id')
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("SELECT user_id, password FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
-            conn.commit()
+            cursor.execute("SELECT user_id, password, loginToken FROM user INNER JOIN user_session ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
             user = cursor.fetchall()
-            if (user != None):
-                cursor.execute("DELETE FROM user WHERE id=?",[user_id,])
+            if user[0][1] == password and user[0][2] == login_token:
+                cursor.execute("DELETE FROM user WHERE password=?",[password,])
+                conn.commit()
+                return Response("User successfully deleted",
+                                mimetype="text/html",
+                                status=200)
+
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
