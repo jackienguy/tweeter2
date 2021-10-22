@@ -36,7 +36,6 @@ def login_session():
         cursor = None
         email = request.json.get('email')
         password = request.json.get('password')
-        user = None
         
         try:
             (conn, cursor) = dbConnect()
@@ -45,7 +44,7 @@ def login_session():
             login_token = secrets.token_hex(16)
             if cursor.rowcount == 1: #If user exist will = 1
                 user_id = user[0][0]
-                cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token])
+                cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)", [user_id, login_token]) #insert the created login token into user session table
                 conn.commit()
                 # fetchall returns dictionaries with tuples. Indexes reflect dictionary index and indexes of the tuples 
                 resp = {
@@ -82,10 +81,10 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)
-
 
     elif (request.method == 'DELETE'):
         conn = None
@@ -94,12 +93,12 @@ def login_session():
 
         try:
             (conn, cursor) = dbConnect()
-            cursor.execute("DELETE FROM user_session WHERE loginToken=?", [login_token,])
+            cursor.execute("DELETE from user_session WHERE loginToken=?",[login_token])
             conn.commit()
-            return Response("Logout success",
+            return Response("Sucessfully logged out",
                             mimetype="text/html",
-                            status=204)
-           
+                            status=200)
+        
         except mariadb.DataError:
             print("something went wrong with your data")
         except mariadb.OperationalError:
@@ -119,6 +118,7 @@ def login_session():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)

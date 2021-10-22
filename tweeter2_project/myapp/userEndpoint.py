@@ -30,23 +30,34 @@ def dbConnect():
     return (conn, cursor)
 
 @app.route('/api/user', methods=['POST','GET', 'PATCH', 'DELETE'])
-
 def user():
     if (request.method == 'GET'):
         conn = None
         cursor = None
-        id = request.args.get('id')
+        user_id = request.args.get('userId')
 
         try:
             (conn, cursor) = dbConnect()
-            if id:
-                cursor.execute("SELECT * FROM user WHERE id=?", [id,])
-                user_data = cursor.fetchall()
+            cursor.execute("SELECT * FROM user WHERE id=?", [user_id,])
+            result = cursor.fetchall()
+            if cursor.rowcount > 0:
+                user_data = []
+                for user in result:
+                    users = {
+                       " userId": user_id,
+                       " email": user[3],
+                       " username": user[1],
+                       " bio": user[2],
+                       " birthdate": user[6],
+                    }
+                    user_data.append(users)
                 return Response(json.dumps(user_data, default=str),
                                 mimetype="application/json",
                                 status=200)
             else:
-                return('User id not found')
+                return Response("User id not found",
+                                mimetype="text/html",
+                                status=400)
 
         except mariadb.DataError:
             print("something went wrong with your data")
@@ -67,6 +78,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)
@@ -120,6 +132,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)
@@ -173,6 +186,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)
@@ -211,6 +225,7 @@ def user():
                 conn.close()
             else:
                 print("Failed to read data")
+                
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)

@@ -81,7 +81,7 @@ def tweetLikes():
         cursor = None
         conn = None
         login_token = request.json.get('loginToken')
-        tweet_id = request.json.get('tweet_id')
+        tweet_id = request.json.get('tweetId')
 
         try: 
             (conn, cursor) = dbConnect()

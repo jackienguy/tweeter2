@@ -32,16 +32,26 @@ def getUserFollowers():
     if (request.method == 'GET'):
         cursor = None
         conn = None
-        user_id = request.args.get('user_id')
+        user_id = request.args.get('userId')
 
         try:
             (conn, cursor) = dbConnect()
-            if (user_id != None):
-                cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id WHERE follow.follower_id =?", [user_id,])
-                followers = cursor.fetchall()
-                return Response(json.dumps(followers, Default=str),
-                                mimetype="application/json",
-                                status=200)
+            cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id WHERE follow.follower_id =?", [user_id,])
+            result = cursor.fetchall()
+            if cursor.rowcount > 0:
+                followers_list = []
+                for follower in result:
+                    followers = {
+                        "userId": user_id,
+                        "email": follower[3],
+                        "username": follower[1],
+                        "bio": follower[2],
+                        "birthdate": follower[5]
+                    }
+                    followers_list.append(followers)
+            return Response(json.dumps(followers_list, default=str),
+                            mimetype="application/json",
+                            status=200)
         except ConnectionError:
             print("Error occured trying to connect to database")
         except mariadb.DataError:
@@ -63,6 +73,7 @@ def getUserFollowers():
                 conn.close()
             else:
                 print("Failed to read data")
+                
         return Response("Error something went wrong",
                         mimetype="text/plain",
                         status=500)

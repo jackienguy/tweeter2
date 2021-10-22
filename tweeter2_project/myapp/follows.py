@@ -33,26 +33,25 @@ def UserFollows():
     if (request.method == 'GET'):
         conn = None
         cursor = None
-        user_id = request.args.get('user_id')
+        user_id = request.args.get('userId')
 
         try:
             (conn, cursor) = dbConnect()
-
             #Inner joined on follwer_id and user_id as the follower, getting the list user_id is following 
             cursor.execute("SELECT * FROM user INNER JOIN follow ON follow.following_id = user.id WHERE following_id=?", [user_id,])
             result = cursor.fetchall()
-            # if (result != None):
-            #     follows_info = []
-            #     for follow in result:
-            #         follows = {
-            #             "userId": result[0],
-            #             "email": result[3],
-            #             "username": result[1],
-            #             "birthdate": result[6],
-            #             "bio": result[2]
-            #         }
-            #         follows.append(follows_info)
-            return Response(json.dumps(result, default=str),
+            if cursor.rowcount >0:
+                follows_info = []
+                for follow in result:
+                    follows = {
+                        "userId": follow[0],
+                        "email": follow[3],
+                        "username": follow[1],
+                        "birthdate": follow[5],
+                        "bio": follow[2]
+                    }
+                    follows_info.append(follows)
+            return Response(json.dumps(follows_info, default=str),
                         mimetype="application/json",
                         status=200)
 
@@ -85,22 +84,26 @@ def UserFollows():
     elif (request.method == 'POST'):
         conn = None
         cursor = None
-        following_id = request.json.get('following_id')
+        following_id = request.json.get('followingId')
         login_token = request.json.get('loginToken')
 
         try:
             (conn, cursor) = dbConnect()
-            if (login_token !=None and following_id != None):
-                # Get user id of user who have successfully logged in 
-                cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
-                user = cursor.fecthall() 
-                user_id = user[0][0]
+            # Get user id of user who have successfully logged in 
+            cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+            user = cursor.fetchall() 
+            user_id = user[0][0]
+            if user[0][1] == login_token:
                 # following_id equals the user_id we want to follow, follower_id equals the user_id of who is following you
-                cursor.execute("INSERT INTO follows (following_id, follower_id) VALUES(?,?)", [user_id, following_id])
+                cursor.execute("INSERT INTO follow (following_id, follower_id) VALUES(?,?)", [user_id, following_id])
                 conn.commit()
-                return Response("Following",
+                return Response("Following user",
                                 mimetype="text/html",
                                 status=200)
+            else:
+                return Response("Action denied, you are not authenticated user",
+                            mimetype="text/plain",
+                            status=400)
 
         except ConnectionError:
             print("Error occured trying to connect to database")
