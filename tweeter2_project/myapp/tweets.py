@@ -45,6 +45,8 @@ def tweets():
             created_At = datetime.datetime.now()
             user_id = user[0][0]
             cursor.execute("INSERT INTO tweets(user_id, content, created_At) VALUES(?,?,?)",[user_id, content, created_At])
+            if (len(content) > 350):
+                return ("Tweet is too long. Maximum character is 350")
             conn.commit()
             tweet_id = cursor.lastrowid
             createTweet = {
@@ -171,6 +173,8 @@ def tweets():
             tweeter = cursor.fetchall()
             if user[0][1] == login_token and user_id == tweeter[0][0]:
                 cursor.execute("UPDATE tweets SET content=? WHERE id=?", [content, tweet_id])
+                if (len(content) > 350):
+                    return ("Tweet is too long. Maximum character is 350")
                 conn.commit()
                 editedTweet = {
                     "tweetId" : tweet_id,

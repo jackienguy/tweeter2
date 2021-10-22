@@ -51,16 +51,5 @@
 #   else:
 #     return Response
 
-# cursor.execute("SELECT * FROM comment INNER JOIN user ON comment.user_id = user.id WHERE comment.tweet_id=?", [tweet_id,])
 
-  # if result == []:
-  #               commentLikes = []
-  #               for result in result:
-  #                   likes = {
-  #                   "commentId": comment_id,
-  #                   "userId": result[0][0],
-  #                   "username": result[0][1]
-  #               }
-  #               commentLikes.append(likes)
-
-  # cursor.execute("UPDATE user SET username=?, bio=?, email=?, birthdate=? WHERE id=?", [user_id, username, bio, email, birthdate])
+ 

@@ -39,8 +39,9 @@ def comment():
             (conn, cursor) = dbConnect()
             cursor.execute("SELECT * FROM comment INNER JOIN user ON user.id = comment.user_id INNER JOIN tweets ON comment.user_id = tweets.user_id WHERE tweet_id=?", [tweet_id,])
             comments = cursor.fetchall()
-            if cursor.rowcount >= 1:
-                comment_list = []
+            #if existing object is returned from db, will need to convert the dict to json format. An empty list is created, then loop through the items in the dict from the cursor fetchall and append the keys and values to the list created
+            if cursor.rowcount > 0: 
+                comment_list = [] 
                 for comment in comments:
                     resp = {
                         "commentId": comment[0],
@@ -92,16 +93,19 @@ def comment():
             cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_Token,])
             user = cursor.fetchall()
             user_id = user[0][0]
+            username = user[0][2]
             created_At = datetime.datetime.now()
             if user[0][1] == login_Token:
-                cursor.execute("INSERT INTO comment(user_id, tweet_id, content, created_At) VALUES(?,?,?,?)",[user_id, tweet_id, content, created_At])
+                cursor.execute("INSERT INTO comment(user_id, tweet_id, username, content, created_At) VALUES(?,?,?,?,?)",[user_id, tweet_id, username, content, created_At])
+                if (len(content) > 350):
+                    return ("Tweet is too long. Maximum character is 350")
                 conn.commit()
                 comment_id = cursor.lastrowid
                 resp = {
                     "commentId": comment_id,
                     "tweetId": tweet_id,
                     "userId": user_id,
-                    "username": user[0][2],
+                    "username": username,
                     "content": content,
                     "createdAt": created_At
                 }
@@ -157,6 +161,8 @@ def comment():
             # To check permissio, verify login token as well as the user_id matches comment.user_id
             if user[0][1] == login_token and user_id == commenter[0][2]:
                 cursor.execute("UPDATE comment SET content=? WHERE id=?", [content, comment_id,])
+                if (len(content) > 350):
+                    return ("Tweet is too long. Maximum character is 250")
                 conn.commit()
                 editedComment = {
                     "commentId": comment_id,

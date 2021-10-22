@@ -1,11 +1,9 @@
 import mariadb
-from werkzeug.security import generate_password_hash
 from myapp import dbcreds
 from flask import request, Response
 import json
 from myapp import app
 import secrets
-import re
 
 def dbConnect():
     conn = None
@@ -90,24 +88,25 @@ def user():
         username = request.json.get("username")
         password = request.json.get("password")
         bio = request.json.get("bio")
-        email = request.json.get("email")
+        email= request.json.get("email")
         birthdate = request.json.get("birthdate")
 
         try:
             (conn, cursor) = dbConnect()
             cursor.execute("INSERT INTO user(username, password, bio, email, birthdate) VALUES(?,?,?,?,?)", [username, password, bio, email, birthdate])
-            cursor.execute("SELECT email FROM user WHERE email=?", [email,])
-            if cursor.rowcount == 1:
-                    return("Email not available, please use another email")
-            if (len(password) < 8):
+            if (len(username) <2):
+                return ("Username is too short")
+            elif (len(password) < 8):
                 return ("Password need to be at least 8 characters long")
+            elif (len(bio) > 150):
+                return ("Bio is too long. Maximum 150 characters")
             user_id = cursor.lastrowid #cursor.lastrowid is a read-only property which returns the value generated for the auto increment column user_id by the INSERT statement above
             login_token = secrets.token_hex(16)
             cursor.execute("INSERT INTO user_session(user_id, loginToken) VALUES(?,?)",[user_id, login_token])
             conn.commit()
             newUser = {
                 "userId": user_id,
-                "password": generate_password_hash(password, method='sah256'),
+                "password": password,
                 "bio": bio,
                 "email": email,
                 "birthdate": birthdate,

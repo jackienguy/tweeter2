@@ -40,6 +40,7 @@ def commentLikes():
             (conn, cursor) = dbConnect()
             cursor.execute('SELECT user_id, username FROM user INNER JOIN comment_like on comment_like.user_Id = user.id WHERE comment_id=?',[comment_id,])
             result = cursor.fetchall()
+            #if existing object is returned from db, will need to convert the dict to json format. An empty list is created, then loop through the items in the dict from the cursor fetchall and append the keys and values to the list created
             if cursor.rowcount >= 1: #rowcount of >=1 as comment can have many likes by different users, alternatively can also be > 0
                 commentLikes = []  #converting dict to json. First creating a list, looping through dict and appeneding keys and values to the list
                 for user in result: #iterating through users and returning specific user data
