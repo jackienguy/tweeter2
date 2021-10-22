@@ -133,18 +133,18 @@ def UserFollows():
     elif (request.method == 'DELETE'):
         conn = None
         cursor = None
-        following_id = request.json.get('following_id')
+        following_id = request.json.get('followingId')
         login_token = request.json.get('loginToken')
 
         try:
             (conn, cursor) = dbConnect()
-            if (login_token !=None and following_id != None):
-                cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
-                user = cursor.fecthall() 
-                user_id = user[0][0]
-                cursor.execute("DELETE FROM follows WHERE following_id? AND follower_id=?", [user_id, following_id])
+            cursor.execute("SELECT user_id, loginToken, username FROM user_session INNER JOIN user ON user_session.user_id = user.id WHERE loginToken=?", [login_token,])
+            user = cursor.fetchall() 
+            user_id = user[0][0]
+            if user[0][1] == login_token:
+                cursor.execute("DELETE FROM follows WHERE follower_id=?", [following_id,])
                 conn.commit()
-                return Response("Unfollowed",
+                return Response("Unfollowed user",
                                 mimetype="text/html",
                                 status=200)
 
