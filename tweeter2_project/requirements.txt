@@ -7,3 +7,4 @@ mariadb==1.0.7
 MarkupSafe==2.0.1
 pyjokes==0.6.0
 Werkzeug==2.0.1
+bjoern==3.1.0
